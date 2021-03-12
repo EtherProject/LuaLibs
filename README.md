@@ -9,6 +9,7 @@ Lua module collection · Makes Lua great again
 |         项目名称         |                  简介                  |                        开发者                         | 是否跨平台 |
 |:------------------------:|:--------------------------------------:|:-----------------------------------------------------:|:----------:|
 | [LuaHttplib](LuaHttplib) | 阻塞式 HTTP 库，支持创建服务端和客户端 | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |     √      |
+|  [LuaXmllib](LuaXmllib)  |               XML 解析库               | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |     √      |
 
 ## 声明  
 
