@@ -1,4 +1,4 @@
-# LuaHttplib
+# LuaHttpLib
 
 阻塞式 HTTP 库，支持创建服务端和客户端
 
