@@ -6,10 +6,10 @@ Lua module collection · Makes Lua great again
 
 ## 已收录项目  
 
-|         项目名称         |                  简介                  |                        开发者                         | 是否跨平台 |
-|:------------------------:|:--------------------------------------:|:-----------------------------------------------------:|:----------:|
-| [LuaHttplib](LuaHttplib) | 阻塞式 HTTP 库 | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |     √      |
-|  [LuaXmllib](LuaXmllib)  |               XML 解析库               | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |     √      |
+|         项目名称         |      简介      |                        开发者                         | Lua API 版本 | 是否跨平台 |
+|:------------------------:|:--------------:|:-----------------------------------------------------:|:------------:|:----------:|
+| [LuaHttplib](LuaHttplib) | 阻塞式 HTTP 库 | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |    5.4.0     |     √      |
+|  [LuaXmllib](LuaXmllib)  |   XML 解析库   | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |    5.4.0     |     √      |
 
 ## 声明  
 
