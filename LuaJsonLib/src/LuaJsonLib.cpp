@@ -1,18 +1,140 @@
-#include "cJSON.h"
+#include "LuaJsonLib.h"
 
-#include <lua.hpp>
+bool CheckArrary(lua_State* L, int iIndex)
+{
+	lua_pushnil(L);
+	while (lua_next(L, iIndex) != 0)
+	{
+		switch (lua_type(L, -2))
+		{
+		case LUA_TSTRING:
+			lua_pop(L, 2);
+			return false;
+		case LUA_TNUMBER:
+			break;
+		default:
+			luaL_argcheck(L, false, 1, (string("key not support to dump: ") + lua_typename(L, -2)).c_str());
+			break;
+		}
+		lua_pop(L, 1);
+	}
+	return true;
+}
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-using namespace std;
+void LuaTable2CJson(cJSON*& pJsonNode, int iIndex, lua_State* L)
+{
+	lua_pushnil(L);
+	if (CheckArrary(L, iIndex))
+	{
+		pJsonNode = cJSON_CreateArray();
+		while (lua_next(L, iIndex))
+		{
+			switch (lua_type(L, -1))
+			{
+			case LUA_TNIL:
+				cJSON_AddItemToArray(pJsonNode, cJSON_CreateNull());
+				break;
+			case LUA_TBOOLEAN:
+				cJSON_AddItemToArray(pJsonNode, cJSON_CreateBool(lua_toboolean(L, -1)));
+				break;
+			case LUA_TNUMBER:
+				cJSON_AddItemToArray(pJsonNode, cJSON_CreateNumber(lua_tonumber(L, -1)));
+				break;
+			case LUA_TSTRING:
+				cJSON_AddItemToArray(pJsonNode, cJSON_CreateString(lua_tostring(L, -1)));
+				break;
+			case LUA_TTABLE:
+			{
+				cJSON* pNewJsonNode = nullptr;
+				LuaTable2CJson(pNewJsonNode, lua_gettop(L), L);
+				cJSON_AddItemToArray(pJsonNode, pNewJsonNode);
+			}
+			break;
+			default:
+				luaL_argcheck(L, false, 1, (string("value not support to dump: [") + lua_tostring(L, -2) + "]" + lua_typename(L, -1)).c_str());
+				break;
+			}
+			lua_pop(L, 1);
+		}
+	}
+	else
+	{
+		pJsonNode = cJSON_CreateObject();
+		while (lua_next(L, iIndex))
+		{
+			string strKey;
+			if (lua_type(L, -2) == LUA_TSTRING)
+				strKey = lua_tostring(L, -2);
+			else
+				strKey = to_string(lua_tointeger(L, -2));
+			switch (lua_type(L, -1))
+			{
+			case LUA_TNIL:
+				cJSON_AddItemToObject(pJsonNode, strKey.c_str(), cJSON_CreateNull());
+				break;
+			case LUA_TBOOLEAN:
+				cJSON_AddItemToObject(pJsonNode, strKey.c_str(), cJSON_CreateBool(lua_toboolean(L, -1)));
+				break;
+			case LUA_TNUMBER:
+				cJSON_AddItemToObject(pJsonNode, strKey.c_str(), cJSON_CreateNumber(lua_tonumber(L, -1)));
+				break;
+			case LUA_TSTRING:
+				cJSON_AddItemToObject(pJsonNode, strKey.c_str(), cJSON_CreateString(lua_tostring(L, -1)));
+				break;
+			case LUA_TTABLE:
+			{
+				cJSON* pNewJsonNode = nullptr;
+				LuaTable2CJson(pNewJsonNode, lua_gettop(L), L);
+				cJSON_AddItemToObject(pJsonNode, strKey.c_str(), pNewJsonNode);
+			}
+			break;
+			default:
+				luaL_argcheck(L, false, 1, (string("value not support to dump: [") + strKey.c_str() + "]" + lua_typename(L, -1)).c_str());
+				break;
+			}
+			lua_pop(L, 1);
+		}
+	}
+}
 
-#define LIB_API extern "C" int
+char* LuaVaule2JSONStr(lua_State* L, bool bIsFormat)
+{
+	cJSON* pJsonRoot = nullptr;
+	switch (lua_type(L, 1))
+	{
+	case LUA_TNIL:
+		pJsonRoot = cJSON_CreateNull();
+		break;
+	case LUA_TBOOLEAN:
+		pJsonRoot = cJSON_CreateBool(lua_toboolean(L, 1));
+		break;
+	case LUA_TNUMBER:
+		pJsonRoot = cJSON_CreateNumber(lua_tonumber(L, 1));
+		break;
+	case LUA_TSTRING:
+		pJsonRoot = cJSON_CreateString(lua_tostring(L, 1));
+		break;
+	case LUA_TTABLE:
+		LuaTable2CJson(pJsonRoot, 1, L);
+		break;
+	default:
+		luaL_argcheck(L, false, 1, string(lua_typename(L, 1)).append(" not support to dump").c_str());
+		break;
+	}
+	cJSON_Delete(pJsonRoot);
+	return bIsFormat ? cJSON_Print(pJsonRoot) : cJSON_PrintUnformatted(pJsonRoot);
+}
 
 void CJson2LuaObj(cJSON* pJsonNode, lua_State* L)
 {
-	if (pJsonNode->string) lua_pushstring(L, pJsonNode->string);
+	if (pJsonNode->string)
+	{
+		int iKey = atoi(pJsonNode->string);
+		if (iKey)
+			lua_pushinteger(L, iKey);
+		else
+			lua_pushstring(L, pJsonNode->string);
+	}
 	switch (pJsonNode->type)
 	{
 	case cJSON_False:
@@ -59,33 +181,6 @@ void CJson2LuaObj(cJSON* pJsonNode, lua_State* L)
 	if (pJsonNode->string) lua_settable(L, -3);
 }
 
-void LuaObj2CJson(cJSON* pJsonNode, bool bHasKey, lua_State* L)
-{
-	switch (lua_type(L, 1))
-	{
-	case LUA_TNIL:
-		pJsonNode = cJSON_CreateNull();
-		break;
-	case LUA_TBOOLEAN:
-		pJsonNode = cJSON_CreateBool(lua_toboolean(L, 2));
-		break;
-	case LUA_TNUMBER:
-		pJsonNode = cJSON_CreateNumber(lua_tonumber(L, 2));
-		break;
-	case LUA_TSTRING:
-		pJsonNode = cJSON_CreateString(lua_tostring(L, 2));
-		break;
-	case LUA_TTABLE:
-		lua_pushnil(L);
-		pJsonNode = cJSON_CreateObject();
-		break;
-	default:
-		luaL_argcheck(L, false, 1, string("type not support dump: ").append(lua_typename(L, 2)).c_str());
-		break;
-	}
-	if (bHasKey) pJsonNode->string = const_cast<char*>(lua_tostring(L, 1));
-}
-
 LIB_API api_Load(lua_State* L)
 {
 	cJSON* pJsonRoot = cJSON_Parse(luaL_checkstring(L, 1));
@@ -97,9 +192,9 @@ LIB_API api_Load(lua_State* L)
 
 LIB_API api_LoadFromFile(lua_State* L)
 {
-	std::ifstream fin(luaL_checkstring(L, 1));
+	ifstream fin(luaL_checkstring(L, 1));
 	luaL_argcheck(L, fin.good(), 1, "no such JSON file");
-	std::stringstream ssContent;
+	stringstream ssContent;
 	ssContent << fin.rdbuf();
 	fin.close(); fin.clear();
 	cJSON* pJsonRoot = cJSON_Parse(ssContent.str().c_str());
@@ -111,17 +206,28 @@ LIB_API api_LoadFromFile(lua_State* L)
 
 LIB_API api_Dump(lua_State* L)
 {
-	cJSON* pJsonRoot = nullptr;
-	LuaObj2CJson(pJsonRoot, false, L);
-	lua_pushstring(L, lua_toboolean(L, 2) ? cJSON_Print(pJsonRoot) : cJSON_PrintUnformatted(pJsonRoot));
-	cJSON_Delete(pJsonRoot);
+	char* strJSON = LuaVaule2JSONStr(L, lua_toboolean(L, 2));
+	lua_pushstring(L, strJSON);
+	free(strJSON);
 	return 1;
+}
+
+LIB_API api_DumpToFile(lua_State* L)
+{
+	ofstream fout(luaL_checkstring(L, 2));
+	luaL_argcheck(L, fout.good(), 1, "no such JSON file");
+	char* strJSON = LuaVaule2JSONStr(L, lua_toboolean(L, 3));
+	fout << strJSON << endl;
+	fout.close(); fout.clear();
+	free(strJSON);
+	return 0;
 }
 
 static luaL_Reg cMethods[] = {
 	{ "Load", api_Load },
 	{ "LoadFromFile", api_LoadFromFile },
 	{ "Dump", api_Dump },
+	{ "DumpToFile", api_DumpToFile },
 	{ nullptr, nullptr }
 };
 
