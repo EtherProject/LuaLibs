@@ -215,7 +215,7 @@ LIB_API api_Dump(lua_State* L)
 LIB_API api_DumpToFile(lua_State* L)
 {
 	ofstream fout(luaL_checkstring(L, 2));
-	luaL_argcheck(L, fout.good(), 1, "no such JSON file");
+	luaL_argcheck(L, fout.good(), 1, "cannot open or create such JSON file");
 	char* strJSON = LuaVaule2JSONStr(L, lua_toboolean(L, 3));
 	fout << strJSON << endl;
 	fout.close(); fout.clear();
