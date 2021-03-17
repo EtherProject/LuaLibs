@@ -11,6 +11,7 @@ Lua module collection · Makes Lua great again
 | [LuaHttpLib](LuaHttpLib) | 阻塞式 HTTP 库 | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |    5.4.0     |     √      |
 |  [LuaXmlLib](LuaXmlLib)  |   XML 解析库   | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |    5.4.0     |     √      |
 |  [LuaJsonLib](LuaJsonLib)  |   JSON 解析库   | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |    5.4.0     |     √      |
+|  [LuaGameLib](LuaGameLib)  |   游戏开发库   | [Voidmatrix](https://github.com/VoidmatrixHeathcliff) |    5.4.0     |     √      |
 
 ## 声明  
 
