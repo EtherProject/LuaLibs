@@ -50,7 +50,7 @@ JSON 解析库
 
 ## 注意
 
-由于 Lua 语法允许数字索引和字符串索引同处于一个 table 类型的变量中，故当两者并存时，调用 `Dump()` 或 `DumpToFile` 方法会将数字索引转换为对应的字符串索引，如：`ExmpTable = { name = "xiaoming", "Here" }` 在进行编码后对应的 JSON 字符串可能为：`{ "1":	"Here", "name":	"xiaoming" }`  
+由于 Lua 语法允许数字索引和字符串索引同处于一个 table 类型的变量中，故当两者并存时，调用 `Dump()` 或 `DumpToFile()` 方法会将数字索引转换为对应的字符串索引，如：`ExmpTable = { name = "xiaoming", "Here" }` 在进行编码后对应的 JSON 字符串可能为：`{ "1":	"Here", "name":	"xiaoming" }`  
 同样的，在对 JSON 字符串进行解码时，LuaJsonLib 也会优先将可能转换为数字索引的字符串键值转化数字索引存入对应的 table 中  
 所以，为避免编码的 JSON 数据与其他程序交互时产生二义性，请尽量避免对同时存在数字索引和字符串索引的 table 类型数据进行编码
 
